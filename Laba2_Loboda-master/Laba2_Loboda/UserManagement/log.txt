@@ -1,0 +1,7 @@
+     [echo] Pre-initializing started on 23/10/2017 13:59:42
+     [echo] Pre-initializing finished
+     [echo] Setting classpathes
+     [echo] Cleanage started
+   [delete] Deleting directory C:\Users\Stas\git\JavaCourse-Loboda-Stas-\UserManagement\build
+   [delete] Deleting directory C:\Users\Stas\git\JavaCourse-Loboda-Stas-\UserManagement\dist
+     [echo] Cleanage finished

@@ -1,0 +1,140 @@
+<project name="UserManagement#1" default="dist">
+	<property name="build.properties.file" value="build.properties" />
+	<property name="properties.file.nonavailable" value="" />
+	<property name="properties.file.available" value="" />
+	<property name="test.fail" value="false" />
+	<property name="test.error" value="false" />
+	<property name="log.file" value="log.txt" />
+
+	<target name="ant.pre-init">
+		<!--Reading properties -->
+		<record name="${log.file}" action="start" />
+		<tstamp>
+			<format property="TIME_START" pattern="dd/MM/yyyy HH:mm:ss" />
+		</tstamp>
+		<echo level="info" message="Pre-initializing started on ${TIME_START}" />
+		<condition property="">
+			<available file="${build.properties.file}" property="properties.file.available">
+			</available>
+		</condition>
+		<echo level="info" message="Pre-initializing finished" />
+		<record name="${log.file}" action="stop" />
+	</target>
+
+	<target name="ant.properties.file" if="properties.file.available" depends="ant.pre-init">
+		<echo level="info" message="Loading properties from file" />
+		<property file="${build.properties.file}" />
+	</target>
+
+	<target name="ant.properties.default" unless="properties.file.nonavailable" depends="ant.pre-init">
+		<echo level="info" message="Loading properties by default" />
+		<property name="build.dir" location="build" />
+		<property name="src.dir" location="src" />
+		<property name="resources.dir" location="resources" />
+		<property name="lib.dir" location="lib" />
+		<property name="dist.dir" location="dist" />
+		<property name="test.dir" location="test" />
+		<property name="javadoc.dir" location="${dist.dir}\javadoc" />
+		<property name="report.dir" location="${dist.dir}\report" />
+		<property name="dist.jar.location" location="${dist.dir}\${ant.project.name}.jar" />
+		<property name="Main-Class" value="Main" />
+	</target>
+
+	<target name="ant.classpathSet" depends="ant.properties.file, ant.properties.default">
+		<record name="${log.file}" action="start" />
+		<echo level="info" message="Setting classpathes" />
+		<path id="classpath">
+			<fileset dir="${lib.dir}">
+				<include name="*.jar" />
+			</fileset>			
+		</path>
+		<path id="testclasses" location="${lib.dir}">
+			<pathelement location="${build.dir}" />
+			<pathelement location="${testresources.dir}"/>
+		</path>
+		<record name="${log.file}" action="stop" />
+	</target>
+
+	<target name="clean" depends="ant.classpathSet">
+		<record name="${log.file}" action="start" />
+		<echo level="info" message="Cleanage started" />
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}" />
+		<echo level="info" message="Cleanage finished" />
+		<record name="${log.file}" action="stop" />
+	</target>
+
+	<target name="init" depends="clean">
+		<!-- Creating directories -->
+		<record name="${log.file}" action="start" />
+		<echo level="info" message="Initializing started" />
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${javadoc.dir}" />
+		<mkdir dir="${report.dir}" />
+		<echo level="info" message="Initializing finished" />
+		<record name="${log.file}" action="stop" />
+	</target>
+
+	<target name="compile" depends="init">
+		<record name="${log.file}" action="start" />
+		<echo level="info" message="Compilation started" />
+		<!--Compiling project sources-->
+		<javac includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}" encoding="utf-8">
+			<classpath refid="classpath" />
+		</javac>
+		<!--Compiling project test sources-->
+		<javac includeantruntime="false" srcdir="${test.dir}" destdir="${build.dir}" encoding="utf-8">
+			<classpath refid="classpath" />
+			<classpath refid="testclasses" />
+		</javac>
+		<echo level="info" message="Compilation finished" />
+		<record name="${log.file}" action="stop" />
+	</target>
+
+	<target name="test" depends="compile">
+		<record name="${log.file}" action="start" />
+		<echo level="info" message="Testing started" />
+		<junit printsummary="yes" haltonfailure="true" errorproperty="test.error" failureproperty="test.fail">
+			<classpath refid="classpath" />
+			<classpath refid="testclasses" />
+			<batchtest todir="${report.dir}">
+				<formatter type="xml" />
+				<formatter type="plain" />
+				<fileset dir="${build.dir}" defaultexcludes="false">
+					<include name="**/*Test.*" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<echo level="info" message="Testing finished" />
+		<record name="${log.file}" action="stop" />
+	</target>
+
+	<target name="dist" depends="test">
+		<record name="${log.file}" action="start" />
+		<echo level="info" message="Packaging started" />
+		<delete includeemptydirs="true">
+			<fileset dir="${build.dir}" defaultexcludes="false">
+				<include name="**/*Test.*" />
+			</fileset>
+		</delete>
+		<javadoc sourcepath="${src.dir}" classpathref="classpath" destdir="${javadoc.dir}" encoding="utf-8" access="private" verbose="false">
+		</javadoc>
+		<jar destfile="${dist.jar.location}" basedir="${build.dir}">
+			<manifest>
+				<!-- Who is building this jar? -->
+				<attribute name="Built-By" value="${user.name}" />
+				<!-- Information about the program itself -->
+				<attribute name="Implementation-Vendor" value="ua.kture" />
+				<attribute name="Implementation-Title" value="UserManagement #1" />
+				<attribute name="Implementation-Version" value="1.0.0" />
+				<attribute name="Main-Class" value="${Main-Class}" />
+			</manifest>
+		</jar>
+		<tstamp>
+			<format property="TIME_FINISH" pattern="dd/MM/yyyy HH:mm:ss" />
+		</tstamp>
+		<echo level="info" message="Packaging finished on ${TIME_FINISH}" />
+		<record name="${log.file}" action="stop" />
+	</target>
+</project>
